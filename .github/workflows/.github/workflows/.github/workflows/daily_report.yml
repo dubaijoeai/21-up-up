@@ -1,0 +1,31 @@
+name: A股每日盘后报告
+
+on:
+  schedule:
+    - cron: "35 8 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  run-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+      - name: 运行脚本生成报告网页
+        run: python main.py
+      - name: 提交并推送更新后的网页
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html
+          git commit -m "自动更新每日报告" || echo "没有变化，跳过提交"
+          git push
